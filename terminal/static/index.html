@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CapC0 Terminal</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #1a1a2e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #e94560;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        #terminal-container {
+            border: 2px solid #e94560;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
+        }
+
+        #terminal {
+            width: 800px;
+            height: 500px;
+        }
+
+        .info {
+            color: #888;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .info code {
+            background: #2a2a4e;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #e94560;
+        }
+
+        #status {
+            color: #888;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+        }
+
+        #status.connected {
+            color: #4ade80;
+        }
+
+        #status.disconnected {
+            color: #ef4444;
+        }
+
+        @media (max-width: 850px) {
+            #terminal {
+                width: 95vw;
+                height: 60vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>CapC0 Terminal</h1>
+    <div id="status">Connecting...</div>
+    <div id="terminal-container">
+        <div id="terminal"></div>
+    </div>
+    <div class="info">
+        <p>Or connect via SSH: <code>ssh localhost -p 2222</code></p>
+        <p style="margin-top: 10px;">Navigate: ↑/↓ or j/k | Select: Enter | Quick: 1-4 | Quit: q</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+    <script>
+        const statusEl = document.getElementById('status');
+
+        // Initialize xterm.js
+        const term = new Terminal({
+            cursorBlink: true,
+            fontSize: 14,
+            fontFamily: '"Fira Code", "Cascadia Code", "JetBrains Mono", monospace',
+            theme: {
+                background: '#1a1a2e',
+                foreground: '#eee',
+                cursor: '#e94560',
+                cursorAccent: '#1a1a2e',
+                selection: 'rgba(233, 69, 96, 0.3)',
+                black: '#1a1a2e',
+                red: '#e94560',
+                green: '#4ade80',
+                yellow: '#fbbf24',
+                blue: '#60a5fa',
+                magenta: '#c084fc',
+                cyan: '#22d3ee',
+                white: '#e5e5e5',
+                brightBlack: '#6b7280',
+                brightRed: '#f87171',
+                brightGreen: '#86efac',
+                brightYellow: '#fde047',
+                brightBlue: '#93c5fd',
+                brightMagenta: '#d8b4fe',
+                brightCyan: '#67e8f9',
+                brightWhite: '#ffffff'
+            }
+        });
+
+        const fitAddon = new FitAddon.FitAddon();
+        term.loadAddon(fitAddon);
+
+        const terminalEl = document.getElementById('terminal');
+        term.open(terminalEl);
+        fitAddon.fit();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            fitAddon.fit();
+        });
+
+        // Connect to WebSocket
+        function connect() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+
+            const ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                statusEl.textContent = 'Connected';
+                statusEl.className = 'connected';
+
+                // Send initial terminal size
+                const dims = { cols: term.cols, rows: term.rows };
+                ws.send(JSON.stringify({ type: 'resize', ...dims }));
+            };
+
+            ws.onmessage = (event) => {
+                term.write(event.data);
+            };
+
+            ws.onclose = () => {
+                statusEl.textContent = 'Disconnected - Reconnecting...';
+                statusEl.className = 'disconnected';
+                term.write('\r\n\x1b[31mConnection lost. Reconnecting...\x1b[0m\r\n');
+
+                // Reconnect after 2 seconds
+                setTimeout(connect, 2000);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+
+            // Send keyboard input to server
+            term.onData((data) => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(data);
+                }
+            });
+
+            // Send resize events
+            term.onResize((size) => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ type: 'resize', cols: size.cols, rows: size.rows }));
+                }
+            });
+        }
+
+        // Start connection
+        connect();
+    </script>
+</body>
+</html>
