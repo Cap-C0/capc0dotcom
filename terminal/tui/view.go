@@ -12,7 +12,8 @@ var (
 	titleStyle = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("212")).
-			MarginBottom(1)
+			MarginBottom(1).
+			Align(lipgloss.Center)
 
 	menuStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
@@ -34,7 +35,8 @@ var (
 
 	helpStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("241")).
-			MarginTop(1)
+			MarginTop(1).
+			Align(lipgloss.Center)
 )
 
 // View implements tea.Model
@@ -42,12 +44,6 @@ func (m Model) View() string {
 	if m.quitting {
 		return "Goodbye!\n"
 	}
-
-	var b strings.Builder
-
-	// Title
-	b.WriteString(titleStyle.Render("CapC0's Terminal"))
-	b.WriteString("\n\n")
 
 	// Build menu
 	var menuItems []string
@@ -68,12 +64,26 @@ func (m Model) View() string {
 	content := contentStyle.Render(page.Content)
 
 	// Layout: menu on left, content on right
-	layout := lipgloss.JoinHorizontal(lipgloss.Top, menu, content)
-	b.WriteString(layout)
+	mainContent := lipgloss.JoinHorizontal(lipgloss.Top, menu, content)
 
-	// Help text
-	b.WriteString("\n")
-	b.WriteString(helpStyle.Render("↑/↓ or j/k: navigate • enter: select • 1-4: quick access • q: quit"))
+	// Get the width of the main content for centering title and help
+	contentWidth := lipgloss.Width(mainContent)
 
-	return b.String()
+	// Title centered above content
+	title := titleStyle.Width(contentWidth).Render("CapC0's Terminal")
+
+	// Help text centered below content
+	help := helpStyle.Width(contentWidth).Render("↑/↓ or j/k: navigate • enter: select • 1-4: quick access • q: quit")
+
+	// Combine all elements vertically
+	fullUI := lipgloss.JoinVertical(lipgloss.Center, title, mainContent, help)
+
+	// Center the entire UI in the terminal
+	return lipgloss.Place(
+		m.width,
+		m.height,
+		lipgloss.Center,
+		lipgloss.Center,
+		fullUI,
+	)
 }

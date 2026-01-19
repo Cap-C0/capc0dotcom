@@ -12,52 +12,34 @@
             box-sizing: border-box;
         }
 
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
         body {
             background-color: #1a1a2e;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
             font-family: 'Courier New', monospace;
-            padding: 20px;
+            padding: 16px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-shrink: 0;
         }
 
         h1 {
             color: #e94560;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-        }
-
-        #terminal-container {
-            border: 2px solid #e94560;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
-        }
-
-        #terminal {
-            width: 800px;
-            height: 500px;
-        }
-
-        .info {
-            color: #888;
-            margin-top: 20px;
-            font-size: 0.9rem;
-            text-align: center;
-        }
-
-        .info code {
-            background: #2a2a4e;
-            padding: 2px 8px;
-            border-radius: 4px;
-            color: #e94560;
+            font-size: 1.25rem;
         }
 
         #status {
             color: #888;
-            margin-bottom: 10px;
             font-size: 0.8rem;
         }
 
@@ -69,23 +51,51 @@
             color: #ef4444;
         }
 
-        @media (max-width: 850px) {
-            #terminal {
-                width: 95vw;
-                height: 60vh;
-            }
+        #terminal-container {
+            flex: 1;
+            min-height: 0;
+            border: 2px solid #e94560;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
+            display: flex;
+        }
+
+        #terminal {
+            flex: 1;
+            min-height: 0;
+        }
+
+        .info {
+            color: #888;
+            margin-top: 12px;
+            font-size: 0.8rem;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .info code {
+            background: #2a2a4e;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #e94560;
+        }
+
+        .info p {
+            margin: 4px 0;
         }
     </style>
 </head>
 <body>
-    <h1>CapC0 Terminal</h1>
-    <div id="status">Connecting...</div>
+    <header>
+        <h1>CapC0 Terminal</h1>
+        <div id="status">Connecting...</div>
+    </header>
     <div id="terminal-container">
         <div id="terminal"></div>
     </div>
     <div class="info">
-        <p>Or connect via SSH: <code>ssh localhost -p 2222</code></p>
-        <p style="margin-top: 10px;">Navigate: ↑/↓ or j/k | Select: Enter | Quick: 1-4 | Quit: q</p>
+        <p>SSH: <code>ssh localhost -p 2222</code> | Navigate: ↑/↓ j/k | Select: Enter | Quick: 1-4 | Quit: q</p>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
