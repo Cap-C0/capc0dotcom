@@ -7,6 +7,13 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// Fixed dimensions for stable layout
+const (
+	contentWidth  = 45
+	contentHeight = 16
+	menuWidth     = 18
+)
+
 // Styles
 var (
 	titleStyle = lipgloss.NewStyle().
@@ -19,7 +26,8 @@ var (
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("63")).
 			Padding(0, 1).
-			MarginRight(2)
+			MarginRight(2).
+			Width(menuWidth)
 
 	selectedStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("212")).
@@ -31,7 +39,9 @@ var (
 	contentStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("63")).
-			Padding(1, 2)
+			Padding(1, 2).
+			Width(contentWidth).
+			Height(contentHeight)
 
 	helpStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("241")).
@@ -57,7 +67,8 @@ func (m Model) View() string {
 			menuItems = append(menuItems, normalStyle.Render("  "+label))
 		}
 	}
-	menu := menuStyle.Render(strings.Join(menuItems, "\n"))
+	// Set menu height to match content height for alignment
+	menu := menuStyle.Height(contentHeight).Render(strings.Join(menuItems, "\n"))
 
 	// Build content
 	page := Pages[m.currentPage]
